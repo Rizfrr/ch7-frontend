@@ -132,21 +132,13 @@ export const loginWithGoogle = (accessToken) => async (dispatch) => {
       body: JSON.stringify(data),
     });
     const result = await response.json();
-
-    const userInfo = await fetch(REACT_APP_API_OAUTH, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${result.token}`,
-      },
-    });
-    const user = JSON.parse(JSON.stringify(await userInfo.json()));
+    const userInfo = JSON.parse(JSON.stringify(result.user));
 
     if (result.token) {
       dispatch({
         type: LOGIN,
         payload: result.token,
-        user: user,
+        user: userInfo,
       });
       Swal.fire({
         position: "center",
