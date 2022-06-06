@@ -1,11 +1,9 @@
 import Swal from "sweetalert2";
 import {AUTH_ERROR, LOGIN, LOGOUT, REGISTER} from "./types";
 
-const {REACT_APP_API_LOGIN, REACT_APP_API_REGISTER, REACT_APP_API_OAUTH, REACT_APP_API_AUTH_ME} = process.env;
-
 export const loginViaForm = (data) => async (dispatch) => {
     try {
-        const response = await fetch(REACT_APP_API_LOGIN, {
+        const response = await fetch("http://localhost:8000/api/v1/login", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -53,7 +51,7 @@ export const loginViaForm = (data) => async (dispatch) => {
 
 export const registerViaForm = (data) => async (dispatch) => {
     try {
-        const response = await fetch(REACT_APP_API_REGISTER, {
+        const response = await fetch("http://localhost:8000/api/v1/register", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -119,7 +117,7 @@ export const loginWithGoogle = (accessToken) => async (dispatch) => {
         const data = {
             access_token: accessToken,
         };
-        const response = await fetch(REACT_APP_API_OAUTH, {
+        const response = await fetch("http://localhost:8000/api/v1/auth/google", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -127,13 +125,21 @@ export const loginWithGoogle = (accessToken) => async (dispatch) => {
             body: JSON.stringify(data),
         });
         const result = await response.json();
-        const userInfo = JSON.parse(JSON.stringify(result.user));
+
+        const userInfo = await fetch("http://localhost:8000/api/v1/auth/me", {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${result.token}`,
+            },
+        });
+        const user = JSON.parse(JSON.stringify(await userInfo.json()));
 
         if (result.token) {
             dispatch({
                 type: LOGIN,
                 payload: result.token,
-                user: userInfo,
+                user: user,
             });
             Swal.fire({
                 position: "center",
@@ -166,7 +172,7 @@ export const loginWithGoogle = (accessToken) => async (dispatch) => {
 
 export const cekTokenExp = () => async (dispatch) => {
     try {
-        const response = await fetch(REACT_APP_API_AUTH_ME, {
+        const response = await fetch("http://localhost:8000/api/v1/auth/me", {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
