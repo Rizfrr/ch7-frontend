@@ -1,25 +1,33 @@
 import Swal from "sweetalert2";
 import {GET_ALL_CARS, CARS_ERROR} from "./types";
 
+const {REACT_APP_API_FILTER_CAR} = process.env;
+
 export const getAllCars = (params) => async (dispatch) => {
     try {
         const {tanggal, jam, penumpang} = params;
         const response = await fetch(
-            "http://localhost:8000/api/v1/cars?" +
+            REACT_APP_API_FILTER_CAR +
                 new URLSearchParams({
                     time: tanggal,
                     date: jam,
                     passenger: penumpang,
-                })
+                }),
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            }
         );
+        console.log("response", response);
         const data = await response.json();
-
         dispatch({
             type: GET_ALL_CARS,
             payload: data,
         });
 
-        data.data.length === 0
+        data.meta.count === 0
             ? Swal.fire({
                   position: "center",
                   icon: "error",
@@ -30,7 +38,7 @@ export const getAllCars = (params) => async (dispatch) => {
             : Swal.fire({
                   position: "center",
                   icon: "success",
-                  title: data.data.length + " Cars available",
+                  title: data.meta.count + " Cars available",
                   showConfirmButton: false,
                   timer: 1500,
               });
@@ -42,7 +50,7 @@ export const getAllCars = (params) => async (dispatch) => {
         Swal.fire({
             position: "center",
             icon: "error",
-            title: "Something went wrong",
+            title: error.message,
             showConfirmButton: false,
             timer: 1500,
         });
